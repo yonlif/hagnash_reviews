@@ -1,0 +1,39 @@
+{
+  "locations": [
+    {
+      "id": 1,
+      "region": "יהודה",
+      "name": "עשהאל",
+      "generalData": "ישוב שעשיתי בו הגנש",
+      "location": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 2,
+      "region": "יהודה",
+      "name": "אשתמוע",
+      "generalData": "ישוב שלא עשיתי בו הגנש",
+      "location": [
+        1,
+        2
+      ]
+    }
+  ],
+  "new_reviews": [
+  ],
+  "reviews": [
+    {
+      "name": "עשהאל",
+      "rating": "4",
+      "username": "יהונתן ליפשיץ",
+      "peopleStaying": 4,
+      "residentComment": "2 חדרים עם מיטות סבבה, קצת צפוף",
+      "foodComment": "אין מסעדות בישוב",
+      "guardingComment": "עמדת שמירה אחת עם פטרול כל 45 דקות",
+      "generalComment": "אין",
+      "id": 1
+    }
+  ]
+}
