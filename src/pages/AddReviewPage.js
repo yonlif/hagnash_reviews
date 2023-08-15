@@ -1,39 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Rating, Typography, FormControl, Select, MenuItem, TextField, Button, Box } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 import { useParams } from "react-router-dom";
 import { get, add } from '../database/databaseUtils.js'
 
+
 const AddReviewPage = () => {
   const { name } = useParams()
+  const inputsInitialStatus = {
+    "name": name, "peopleStaying": 4, 
+    "rating": 0, "username": "", 
+    "residentComment": "", "foodComment": "", 
+    "guardingComment": "", "generalComment": ""
+  }
   const [region, setRegion] = useState([]);
+  const [date, setDate] = useState(null);
+  const [inputs, setInputs] = useState(inputsInitialStatus);
+
+  const [sent, setSent] = useState(false);
 
   useEffect(() => {
     get(name, "locations").then(data => {
-        console.log(data)
+        console.log("[AddReviewPage: useEffect] locations:", data)
         setRegion(data[0].region)
      })
   }, []);
 
 
-  const [inputs, setInputs] = useState({"name": name});
-
-  const [sent, setSent] = useState(false);
 
   const handleChange = (event) => {
     const name = event.target.name;
     const value = event.target.value;
-    setInputs(values => ({...values, [name]: value}))
+    setInputs(values => ({...values, [name]: value}));
   };
 
   const handleSubmit = (event) => {
-    console.log(inputs);
     event.preventDefault();
+
+    console.log("[AddReviewPage: handleSubmit] New review sent:", inputs);
     // TODO: Make sure all the values are inputed
     // TODO: Make this a const, make everything consts lol
     add(inputs, "new_reviews");
 
     setSent(true);
-    setInputs({});
+    setInputs(inputsInitialStatus);
+    setDate(null);
   };
 
   const handleGoToReviews = () => {
@@ -66,7 +80,7 @@ const AddReviewPage = () => {
       <form onSubmit={handleSubmit}>
         <Rating 
           name="rating"
-          value={inputs.rating || 0} 
+          value={inputs.rating} 
           label="ציון בללי"
           sx={{ 
             paddingBottom: 2, 
@@ -79,10 +93,25 @@ const AddReviewPage = () => {
           name="username"
           fullWidth
           label="שם מלא"
-          value={inputs.username || ""}
+          value={inputs.username}
           onChange={handleChange}
           sx={{ marginBottom: 2 }}
         />
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            required
+            name="date"
+            label="תאריך תחילת הגנש"
+            value={date}
+            dateFormat="dd/MM/yyyy"
+            onChange={(value) => {
+              setDate(value);     
+              setInputs(values => ({...values, ["date"]: value}))
+            }}
+            sx={{ marginBottom: 2 }}
+          />
+        </LocalizationProvider>
+
         <TextField 
           required
           name="peopleStaying"
@@ -106,7 +135,7 @@ const AddReviewPage = () => {
           multiline
           rows={2}
           label="מגורים"
-          value={inputs.residentComment || ""}
+          value={inputs.residentComment}
           onChange={handleChange}
           sx={{ marginBottom: 2 }}
           helperText="כמות מיטות, כלי מטבח, מרחק מעמדת שמירה וכו'"
@@ -119,7 +148,7 @@ const AddReviewPage = () => {
           multiline
           rows={2}
           label="אוכל"
-          value={inputs.foodComment || ""}
+          value={inputs.foodComment}
           onChange={handleChange}
           sx={{ marginBottom: 2 }}
           helperText="סופר בישוב, משלוחים באזור וכו'"
@@ -132,11 +161,10 @@ const AddReviewPage = () => {
           multiline
           rows={2}
           label="שמירות"
-          value={inputs.guardingComment || ""}
+          value={inputs.guardingComment}
           onChange={handleChange}
           sx={{ marginBottom: 2 }}
-          helperText="כמות עמדות שמירה, איכות עמדת שמירה, ביקורת על הרבשץ, אורך זמן פטרול וכו'"
-
+          helperText="כמות עמדות שמירה, איכות עמדת שמירה - מזגן וחימום, אורך זמן פטרול וכו'"
         />
         <TextField
           name="generalComment"
@@ -144,9 +172,10 @@ const AddReviewPage = () => {
           multiline
           rows={4}
           label="הערות כלליות"
-          value={inputs.generalComment || ""}
+          value={inputs.generalComment}
           onChange={handleChange}
           sx={{ marginBottom: 2 }}
+          helperText="ביקורת על הרבשץ, אווירה כללית בישוב וכו'"
         />
         
         <Button type="submit" variant="contained" color="primary">

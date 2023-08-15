@@ -1,4 +1,5 @@
 const databaseEndpoint = "http://localhost:3030/"
+const newReviewsDatabaseEndpoint = "http://localhost:3031/"
 
 
 
@@ -18,14 +19,14 @@ export const get = async (name: string=null, databaseName: string="reviews") => 
 	if (name) {
 		endpoint = `${endpoint}?name=${name}`
 	}
-	console.log(`In 'get' function to endpoint: ${endpoint}`)
+	console.log(`[databaseUtils: get] endpoint: ${endpoint}`)
     const response = await fetch(endpoint); // Adjust the URL based on your JSON server endpoint
     const data = await response.json();
     return data;
 };
 
 export const add = (data, databaseName: string="reviews") => {
-    var endpoint = `${databaseEndpoint}${databaseName}`
+    var endpoint = `${newReviewsDatabaseEndpoint}${databaseName}`
     request({
         endpoint: endpoint,
         method: 'POST',
@@ -34,7 +35,7 @@ export const add = (data, databaseName: string="reviews") => {
 };
 
 export const update = (review, databaseName: string="reviews") => {
-    var endpoint = `${databaseEndpoint}${databaseName}`
+    var endpoint = `${newReviewsDatabaseEndpoint}${databaseName}`
     request({
         endpoint: `${endpoint}/${review.id}`,
         method: 'PUT',
@@ -43,7 +44,7 @@ export const update = (review, databaseName: string="reviews") => {
 };
 
 export const remove = (review, databaseName: string="reviews") => {
-    var endpoint = `${databaseEndpoint}${databaseName}`
+    var endpoint = `${newReviewsDatabaseEndpoint}${databaseName}`
     request({
         endpoint: `${endpoint}/${review.id}`,
         method: 'DELETE'

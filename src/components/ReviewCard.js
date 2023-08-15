@@ -18,8 +18,11 @@ const ReviewCard = ({ review }) => {
             <Typography variant="body1">
               מדרג: {review.username}
             </Typography>
-          {expandedCard && (
+          { expandedCard && (
               <Box mt={2}>
+                <Typography variant="body2" color="text.secondary">
+                  תאריך הגנש: {review.date}
+                </Typography>
                 <Typography variant="body2" color="text.secondary">
                   כמות אנשים: {review.peopleStaying}
                 </Typography>

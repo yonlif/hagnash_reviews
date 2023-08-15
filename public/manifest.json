@@ -3,17 +3,17 @@
   "name": "Hagnash Reviews App",
   "icons": [
     {
-      "src": "noa_kirel_guard.ico",
+      "src": "logo/noa_kirel_guard.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "noa_kirel_guard_192.png",
+      "src": "logo/noa_kirel_guard_192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "noa_kirel_guard_512.png",
+      "src": "logo/noa_kirel_guard_512.png",
       "type": "image/png",
       "sizes": "512x512"
     }

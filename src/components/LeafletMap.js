@@ -1,42 +1,57 @@
 import L, { Map } from "leaflet";
-import { MapContainer, TileLayer } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import React, { useState, useEffect } from "react";
 import 'leaflet.offline';
 import localforage from 'localforage';
+import { get } from '../database/databaseUtils.js'
 
 
-// TODO:
+// Offline maps:
 // https://stackoverflow.com/questions/43608919/html-offline-map-with-local-tiles-via-leaflet
 // http://davidrs.com/wp/phonegap-3-0-leaflet-offline-maps/
 // https://github.com/davidrs/phonegap-3.0-leaflet
-const LeafletMap = () => {
+// Mobile Atlas creator 2.3.1 - Osmdroid ZIP format
+const LeafletMap = ({ centerLocation, locationsData }) => {
   const [myMap, setMyMap] = useState(null);
+  const [locations, setLocations] = useState([]);
   
-  useEffect(() => {
-  if(myMap){
+  // useEffect(() => {
+  //   get(null, "locations").then(data => {
+  //       console.log(data)
+  //       setLocations(data)
+  //    })
+  // }, []);
 
-    // @ts-ignore
-    const tileLayerOffline = L.tileLayer.offline(
-      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      {
-        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-        minZoom: 13,
-      }
-    );
+  // const markerList = [ {
+  //     lng: locationData.location[1],
+  //     lat: locationData.location[0],
+  //     name: locationData.name
+  //   }
+  // ]
+//   useEffect(() => {
+//   if(myMap){
 
-    tileLayerOffline.addTo(myMap);
+//     // @ts-ignore
+//     const tileLayerOffline = L.tileLayer.offline(
+//       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+//       {
+//         minZoom: 13,
+//       }
+//     );
 
-    // @ts-ignore
-    // const controlSaveTiles = L.control.savetiles(
-    //   tileLayerOffline, 
-    //   {
-    //     zoomlevels: [13, 14, 15, 16], // optional zoomlevels to save, default current zoomlevel
-    //   }
-    // );
+//     tileLayerOffline.addTo(myMap);
 
-    // controlSaveTiles.addTo(myMap);
-  }
-}, [myMap]);
+//     // @ts-ignore
+//     // const controlSaveTiles = L.control.savetiles(
+//     //   tileLayerOffline, 
+//     //   {
+//     //     zoomlevels: [13, 14, 15, 16], // optional zoomlevels to save, default current zoomlevel
+//     //   }
+//     // );
+
+//     // controlSaveTiles.addTo(myMap);
+//   }
+// }, [myMap]);
   
   // componentDidMount() {
   //   const map = L.map('map-id');
@@ -50,17 +65,46 @@ const LeafletMap = () => {
   //   offlineLayer.addTo(map);
   // }
 
+  const renderPopup = (index) => {
+    return (
+      <Popup
+        tipSize={5}
+        anchor="bottom-right"
+        longitude={locationsData[index].lng}
+        latitude={locationsData[index].lat}
+        >
+        <p>
+          <strong>{locationsData[index].name}</strong>
+          <br/>
+          {locationsData[index].region}
+        </p>
+      </Popup>
+    );
+  }
+
   return(
     <MapContainer
-      style={{ alignItems: "center", height: "20vh" }}
-      center={[32.05813317834404, 34.85672678068158]}
-      zoom={13}
+      style={{ alignItems: "center", height: "30vh" }}
+      center={[centerLocation.location[0], centerLocation.location[1]]}
+      zoom={ centerLocation.defaultZoom ? centerLocation.defaultZoom : 14}
       scrollWheelZoom={false}
       whenCreated={setMyMap}
     >
     <TileLayer
-          url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
+          url="../leaflet/OSMPublicTransport/{z}/{x}/{y}.png"
+          minZoom={ 8 }
+          maxZoom={ 16 }
         />
+        { 
+          locationsData.map((marker, index) => {
+            let post = [marker.location[0], marker.location[1]];
+            return (
+              <Marker key={index} position={post}>
+                {renderPopup(index)}
+              </Marker>
+            );
+          })
+        }
     </MapContainer>
   )
   

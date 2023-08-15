@@ -1,4 +1,3 @@
-import Header from './components/Header.js';
 import Footer from './components/Footer.js';
 import AppRouter from './components/AppRouter.js';
 import Navbar from './components/Navbar.js';

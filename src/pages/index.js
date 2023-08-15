@@ -28,7 +28,8 @@ const Home = () => {
   };
 
   const filteredHotels = locations.filter((location) =>
-    location.name.toLowerCase().includes(searchQuery.toLowerCase())
+    location.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    location.region.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleResultClick = (location) => {
