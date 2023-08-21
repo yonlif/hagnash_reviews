@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Typography } from '@mui/material';
-import { get } from '../database/databaseUtils.js'
-
-
+import { Typography } from '@mui/material';
+import { get, locations_database } from '../database/databaseUtils.js'
+import { BlackBorderTextField } from '../components/BlackBorderTextField.js'
 
 
 const Home = () => {
@@ -12,7 +11,7 @@ const Home = () => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const data = await get(null, "locations");
+        const data = await get(null, locations_database);
         var unique = [...new Map(data.map(item => [item.name, item])).values()]; 
         setLocations(unique);
       } catch (error) {
@@ -27,9 +26,12 @@ const Home = () => {
     setSearchQuery(e.target.value);
   };
 
-  const filteredHotels = locations.filter((location) =>
-    location.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    location.region.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredLocations = locations.filter((location) => {
+      const lc_name = location.name.toLowerCase()
+      const lc_region = location.region.toLowerCase()
+      const lc_sq = searchQuery.toLowerCase()
+      return `${lc_region} - ${lc_name}`.includes(lc_sq)
+    }
   );
 
   const handleResultClick = (location) => {
@@ -39,18 +41,18 @@ const Home = () => {
 
   return (
     <div>
-      <Typography variant="h4" component="div" sx={{ mb: 2, mt: 2 }}>
+      <Typography variant="h4" component="div" sx={{ mb: 2, mt: 2, fontWeight: 'medium' }}>
         ביקורות הגנש
       </Typography>
 
-      <TextField
+      <BlackBorderTextField
         label="חיפוש"
         variant="outlined"
         value={searchQuery}
         onChange={handleSearchInputChange}
         sx={{ mb: 2 }}
       />
-      {filteredHotels.map((location) => (
+      {filteredLocations.map((location) => (
         <div
           key={location.id}
           onClick={() => handleResultClick(location)}
@@ -60,6 +62,7 @@ const Home = () => {
             padding: '8px',
             border: '1px solid #ccc',
             borderRadius: '4px',
+            borderColor: 'black',
           }}
         >
           <Typography variant="h6" component="div">

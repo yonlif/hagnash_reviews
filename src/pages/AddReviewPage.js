@@ -1,53 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Rating, Typography, FormControl, Select, MenuItem, TextField, Button, Box } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
 import { useParams } from "react-router-dom";
-import { get, add } from '../database/databaseUtils.js'
+import { Container, Rating, Typography, FormControl, FormHelperText, TextField, Button, Box, Stack } from '@mui/material';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+
+import { BlackBorderTextField } from '../components/BlackBorderTextField.js'
+import { get, add, locations_database, new_reviews_database } from '../database/databaseUtils.js'
+
+
+const required_string = "הינו שדה חובה"
+const people_limit_amout_string = "כמות אנשים צריכה להיות בין 3 ל 8"
+const validationSchema = Yup.object().shape({
+  rating: Yup.number().required(`דירוג ${required_string}`),
+  selectedDate: Yup.string().required(`תאריך תחילת הגנש ${required_string}`),
+  username: Yup.string().required(`שם מלא ${required_string}`),
+  peopleStaying: Yup.number().min(3, people_limit_amout_string).max(8, people_limit_amout_string).required(`כמות אנשים ${required_string}`),
+  residentComment: Yup.string().required(`ביקורת מגורים ${required_string}`),
+  foodComment: Yup.string().required(`ביקורת אוכל ${required_string}`),
+  guardingComment: Yup.string().required(`ביקורת שמירות ${required_string}`),
+});
+
+const theme = createTheme({
+  direction: 'ltr'
+});
+
+const DATES_FORMAT = "DD/MM/YYYY"
 
 
 const AddReviewPage = () => {
-  const { name } = useParams()
-  const inputsInitialStatus = {
-    "name": name, "peopleStaying": 4, 
-    "rating": 0, "username": "", 
-    "residentComment": "", "foodComment": "", 
-    "guardingComment": "", "generalComment": ""
-  }
-  const [region, setRegion] = useState([]);
-  const [date, setDate] = useState(null);
-  const [inputs, setInputs] = useState(inputsInitialStatus);
+  const { name } = useParams();
 
+  const [region, setRegion] = useState([]);
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
-    get(name, "locations").then(data => {
+    get(name, locations_database).then(data => {
         console.log("[AddReviewPage: useEffect] locations:", data)
         setRegion(data[0].region)
      })
   }, []);
 
+  const onSubmit = (data) => {
+    data = {...data, "name": name};
+    console.log("[AddReviewPage: myHandleSubmit] New review sent:", data);
 
-
-  const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setInputs(values => ({...values, [name]: value}));
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    console.log("[AddReviewPage: handleSubmit] New review sent:", inputs);
-    // TODO: Make sure all the values are inputed
-    // TODO: Make this a const, make everything consts lol
-    add(inputs, "new_reviews");
+    add(data, new_reviews_database);
 
     setSent(true);
-    setInputs(inputsInitialStatus);
-    setDate(null);
   };
 
   const handleGoToReviews = () => {
@@ -76,112 +78,192 @@ const AddReviewPage = () => {
         </Button>
       </Box>
       
+    <Formik
+      initialValues={{
+        username: '',
+        rating: null,
+        selectedDate: null,
+        peopleStaying: 4,
+        residentComment: null,
+        foodComment: null,
+        guardingComment: null,
+      }}
+      validationSchema={validationSchema}
+      onSubmit={onSubmit}
+    >
+      {({ setFieldValue }) => (
+        <Form>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
 
-      <form onSubmit={handleSubmit}>
-        <Rating 
-          name="rating"
-          value={inputs.rating} 
-          label="ציון בללי"
-          sx={{ 
-            paddingBottom: 2, 
-            fontSize: "2.5rem" 
-          }} 
-          onChange={handleChange}
-        />
-        <TextField
-          required
-          name="username"
-          fullWidth
-          label="שם מלא"
-          value={inputs.username}
-          onChange={handleChange}
-          sx={{ marginBottom: 2 }}
-        />
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            required
-            name="date"
-            label="תאריך תחילת הגנש"
-            value={date}
-            dateFormat="dd/MM/yyyy"
-            onChange={(value) => {
-              setDate(value);     
-              setInputs(values => ({...values, ["date"]: value}))
-            }}
-            sx={{ marginBottom: 2 }}
-          />
-        </LocalizationProvider>
+          <FormControl error>
+            <Field name="rating">
+              {({ field }) => (
+                <Rating 
+                  {...field}
+                  id="rating"
+                  name="rating"
+                  label="ציון בללי"
+                  value={field.value}
+                  onChange={(event, newValue) => {
+                    field.onChange({
+                      target: {
+                        name: 'rating',
+                        value: newValue,
+                      },
+                    });
+                  }}
+                  sx={{ 
+                    fontSize: "2.5rem" 
+                  }}
+                />
+              )}
+            </Field>
+            <FormHelperText>
+              <ErrorMessage name="rating" />
+            </FormHelperText>
+          </FormControl>
 
-        <TextField 
-          required
-          name="peopleStaying"
-          fullWidth
-          type="number"
-          InputProps={{
-              inputProps: { 
-                  max: 8, min: 3 
-              }
-          }}
-          value={inputs.peopleStaying}
-          onChange={handleChange}
-          label="כמות אנשים"
-          sx={{ marginBottom: 2 }}
-          helperText="בין 3 ל8 אנשים"
-        />
-        <TextField
-          required
-          name="residentComment"
-          fullWidth
-          multiline
-          rows={2}
-          label="מגורים"
-          value={inputs.residentComment}
-          onChange={handleChange}
-          sx={{ marginBottom: 2 }}
-          helperText="כמות מיטות, כלי מטבח, מרחק מעמדת שמירה וכו'"
+          <FormControl error>
+            <Field name="selectedDate">
+              {({ field }) => (
+                <ThemeProvider theme={theme}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                    {...field}
+                    format={DATES_FORMAT}
+                    label="תאריך תחילת הגנש"
+                    onChange={(value) => {
+                      setFieldValue('selectedDate', value.format(DATES_FORMAT));
+                    }}
+                    />
+                </LocalizationProvider>
+            </ThemeProvider>
+              )}
+            </Field>
+            <FormHelperText>
+              <ErrorMessage name="selectedDate" />
+            </FormHelperText>
+          </FormControl>
+          
+          </Box>
 
-        />
-        <TextField
-          required
-          name="foodComment"
-          fullWidth
-          multiline
-          rows={2}
-          label="אוכל"
-          value={inputs.foodComment}
-          onChange={handleChange}
-          sx={{ marginBottom: 2 }}
-          helperText="סופר בישוב, משלוחים באזור וכו'"
+          <Stack spacing={1} mb={2}>
+          <Box mb={2}>
+            <FormControl error fullWidth>
+              <Field name="username">
+                {({ field }) => (
+                  <BlackBorderTextField
+                    {...field}
+                    label="שם מלא"
+                  />
+                )}
+              </Field>
+              <FormHelperText>
+                <ErrorMessage name="username" />
+              </FormHelperText>
+            </FormControl>
+          </Box>
 
-        />
-        <TextField
-          required
-          name="guardingComment"
-          fullWidth
-          multiline
-          rows={2}
-          label="שמירות"
-          value={inputs.guardingComment}
-          onChange={handleChange}
-          sx={{ marginBottom: 2 }}
-          helperText="כמות עמדות שמירה, איכות עמדת שמירה - מזגן וחימום, אורך זמן פטרול וכו'"
-        />
-        <TextField
-          name="generalComment"
-          fullWidth
-          multiline
-          rows={4}
-          label="הערות כלליות"
-          value={inputs.generalComment}
-          onChange={handleChange}
-          sx={{ marginBottom: 2 }}
-          helperText="ביקורת על הרבשץ, אווירה כללית בישוב וכו'"
-        />
-        
-        <Button type="submit" variant="contained" color="primary">
-          שלח
-        </Button>
-      </form>
+          <FormControl error fullWidth>
+            <Field name="peopleStaying">
+              {({ field }) => (
+                <BlackBorderTextField
+                  {...field}
+                  type="number"
+                  label="כמות אנשים"
+                  InputProps={{
+                      inputProps: { 
+                          max: 8, min: 3 
+                      }
+                  }}
+                  helperText="בין 3 ל8 אנשים"
+                />
+              )}
+            </Field>
+            <FormHelperText>
+              <ErrorMessage name="peopleStaying" />
+            </FormHelperText>
+          </FormControl>
+
+          <FormControl error fullWidth>
+            <Field name="residentComment">
+              {({ field }) => (
+                <BlackBorderTextField
+                  {...field}
+                  multiline
+                  rows={2}
+                  label="מגורים"
+                  helperText="כמות מיטות, כלי מטבח, מרחק מעמדת שמירה וכו'"
+                />
+              )}
+            </Field>
+            <FormHelperText>
+              <ErrorMessage name="residentComment" />
+            </FormHelperText>
+          </FormControl>
+
+          <FormControl error fullWidth>
+            <Field name="foodComment">
+              {({ field }) => (
+                <BlackBorderTextField
+                  {...field}
+                  multiline
+                  rows={2}
+                  label="אוכל"
+                  helperText="סופר בישוב, משלוחים באזור וכו'"
+                />
+              )}
+            </Field>
+            <FormHelperText>
+              <ErrorMessage name="foodComment" />
+            </FormHelperText>
+          </FormControl>
+
+          <FormControl error fullWidth>
+            <Field name="guardingComment">
+              {({ field }) => (
+                <BlackBorderTextField
+                  {...field}
+                  multiline
+                  rows={2}
+                  label="שמירות"
+                  helperText="כמות עמדות שמירה, איכות עמדת שמירה - מזגן וחימום, אורך זמן פטרול וכו'"
+                />
+              )}
+            </Field>
+            <FormHelperText>
+              <ErrorMessage name="guardingComment" />
+            </FormHelperText>
+          </FormControl>
+
+          <FormControl error fullWidth>
+            <Field name="generalComment">
+              {({ field }) => (
+                <BlackBorderTextField
+                  {...field}
+                  multiline
+                  rows={2}
+                  label="הערות כלליות"
+                  helperText="ביקורת על הרבשץ, אווירה כללית בישוב וכו'"
+                />
+              )}
+            </Field>
+            <FormHelperText>
+              <ErrorMessage name="generalComment" />
+            </FormHelperText>
+          </FormControl>
+          </Stack>
+
+          <Button
+            type="submit"
+            variant="contained"
+          >
+            שלח
+          </Button>
+        </Form>
+      )}
+      </Formik>
+
       <Typography variant="h5" gutterBottom>
         {sent && "הביקורת נקלטה ותיבדק בקרוב, תודה רבה!" }
       </Typography>
@@ -190,6 +272,213 @@ const AddReviewPage = () => {
 };
 
 export default AddReviewPage;
+
+//             style={{backgroundColor: "#426e9a"}}
+
+
+
+      // <form onSubmit={formik.handleSubmit}>
+      //   <Rating 
+      //     id="rating"
+      //     name="rating"
+      //     value={formik.values.rating}
+      //     onChange={formik.handleChange}
+      //     onBlur={formik.handleBlur}
+      //     error={formik.touched.rating && Boolean(formik.errors.rating)}
+      //     helperText={formik.touched.rating && formik.errors.rating}
+      //     label="ציון בללי"
+      //     sx={{ 
+      //       paddingBottom: 2, 
+      //       fontSize: "2.5rem" 
+      //     }} 
+      //     slotProps={{
+      //       textField: {
+      //           variant: "outlined",
+      //           error: Boolean(formik.errors.rating),
+      //           helperText: formik.errors.rating
+      //       }
+      //     }}
+      //   />
+
+      //   <TextField
+      //     fullWidth
+      //     id="username"
+      //     name="username"
+      //     label="שם מלא"
+      //     value={formik.values.username}
+      //     onChange={formik.handleChange}
+      //     onBlur={formik.handleBlur}
+      //     error={Boolean(formik.errors.username)}
+      //     helperText={formik.errors.username}
+      //     sx={{ marginBottom: 2 }}
+      //   />
+        
+
+      //   <ThemeProvider theme={theme}>
+
+      //     <LocalizationProvider dateAdapter={AdapterDayjs}>
+      //       <DatePicker
+      //         id="date"
+      //         name="date"
+      //         label="תאריך תחילת הגנש"
+      //         value={formik.values.date}
+      //         format={DATES_FORMAT}
+      //         onChange={(value) => formik.setFieldValue("date", value, true)}
+      //         onBlur={formik.handleBlur}
+      //         sx={{ marginBottom: 2 }}
+      //         slotProps={{
+      //           textField: {
+      //               variant: "outlined",
+      //               error: Boolean(formik.errors.date),
+      //               helperText: formik.errors.date
+      //           }
+      //         }}
+      //       />
+      //     </LocalizationProvider>
+      //   </ThemeProvider>
+
+      //   <TextField 
+      //     id="peopleStaying"
+      //     name="peopleStaying"
+      //     fullWidth
+      //     type="number"
+      //     InputProps={{
+      //         inputProps: { 
+      //             max: 8, min: 3 
+      //         }
+      //     }}
+      //     value={formik.peopleStaying}
+      //     onChange={formik.handleChange}
+      //     onBlur={formik.handleBlur}
+      //     error={Boolean(formik.errors.peopleStaying)}
+      //     helperText={formik.errors.peopleStaying}
+      //     label="כמות אנשים"
+      //     sx={{ marginBottom: 2 }}
+      //   />
+
+      //   <br/>
+      //   <Button type="submit" variant="contained" color="primary">
+      //     שלח
+      //   </Button>
+      //   {
+      //     formik.errors && (
+      //       <span style={{ color: "red" }}>
+      //       {
+      //         Object.entries(formik.errors).map( ([key, value]) => 
+      //           <div> key: {key}, value: {value} </div> )
+      //       }
+      //       </span>
+      //     )}      
+      //   </form>
+        
+
+
+        // <Rating 
+        //   name="rating"
+        //   {...register("rating")}
+        //   label="ציון בללי"
+        //   sx={{ 
+        //     paddingBottom: 2, 
+        //     fontSize: "2.5rem" 
+        //   }} 
+        // />
+// <TextField
+//           required
+//           {...register("username")}
+//           fullWidth
+//           label="שם מלא"
+//           sx={{ marginBottom: 2 }}
+//         />
+// {errors.rating && (
+//             <span style={{ color: "red" }}>{errors.rating.message}</span>
+//           )}
+
+        // <ThemeProvider theme={theme}>
+
+        //   <LocalizationProvider dateAdapter={AdapterDayjs}>
+        //     <DatePicker
+        //       required
+        //       name="date"
+        //       label="תאריך תחילת הגנש"
+        //       value={date}
+        //       format={DATES_FORMAT}
+        //       onChange={(value) => {
+        //         console.log(value)
+        //         console.log(typeof(value))
+        //         setDate(value);     
+        //         setInputs(values => ({...values, ["date"]: value.format(DATES_FORMAT)}))
+        //       }}
+        //       sx={{ marginBottom: 2 }}
+        //     />
+        //   </LocalizationProvider>
+        // </ThemeProvider>
+
+        // <TextField 
+        //   required
+        //   name="peopleStaying"
+        //   fullWidth
+        //   type="number"
+        //   InputProps={{
+        //       inputProps: { 
+        //           max: 8, min: 3 
+        //       }
+        //   }}
+        //   value={inputs.peopleStaying}
+        //   onChange={handleChange}
+        //   label="כמות אנשים"
+        //   sx={{ marginBottom: 2 }}
+        //   helperText="בין 3 ל8 אנשים"
+        // />
+        // <TextField
+        //   required
+        //   name="residentComment"
+        //   fullWidth
+        //   multiline
+        //   rows={2}
+        //   label="מגורים"
+        //   value={inputs.residentComment}
+        //   onChange={handleChange}
+        //   sx={{ marginBottom: 2 }}
+        //   helperText="כמות מיטות, כלי מטבח, מרחק מעמדת שמירה וכו'"
+
+        // />
+        // <TextField
+        //   required
+        //   name="foodComment"
+        //   fullWidth
+        //   multiline
+        //   rows={2}
+        //   label="אוכל"
+        //   value={inputs.foodComment}
+        //   onChange={handleChange}
+        //   sx={{ marginBottom: 2 }}
+        //   helperText="סופר בישוב, משלוחים באזור וכו'"
+
+        // />
+        // <TextField
+        //   required
+        //   name="guardingComment"
+        //   fullWidth
+        //   multiline
+        //   rows={2}
+        //   label="שמירות"
+        //   value={inputs.guardingComment}
+        //   onChange={handleChange}
+        //   sx={{ marginBottom: 2 }}
+        //   helperText="כמות עמדות שמירה, איכות עמדת שמירה - מזגן וחימום, אורך זמן פטרול וכו'"
+        // />
+        // <TextField
+        //   name="generalComment"
+        //   fullWidth
+        //   multiline
+        //   rows={4}
+        //   label="הערות כלליות"
+        //   value={inputs.generalComment}
+        //   onChange={handleChange}
+        //   sx={{ marginBottom: 2 }}
+        //   helperText="ביקורת על הרבשץ, אווירה כללית בישוב וכו'"
+        // />
+
 
 
 // 

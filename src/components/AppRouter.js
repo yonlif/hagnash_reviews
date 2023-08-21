@@ -6,7 +6,6 @@ import AddReviewPage from '../pages/AddReviewPage.js';
 import ReviewsPage from '../pages/ReviewsPage.tsx';
 
 
-
 function AppRouter() {
   return (
     <Router>

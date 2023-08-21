@@ -6,7 +6,6 @@ const ReviewCard = ({ review }) => {
 
   const handleCardExpand = () => {
     setExpandedCard(!expandedCard);
-    console.log(expandedCard);
   };
 
   return (
@@ -21,7 +20,7 @@ const ReviewCard = ({ review }) => {
           { expandedCard && (
               <Box mt={2}>
                 <Typography variant="body2" color="text.secondary">
-                  תאריך הגנש: {review.date}
+                  תאריך הגנש: {review.selectedDate}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   כמות אנשים: {review.peopleStaying}

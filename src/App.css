@@ -5,7 +5,6 @@
     display: flex;
   flex-direction: column;
   min-height: 100vh;
-
 }
 
 .navbar {
@@ -26,12 +25,12 @@ overflow-y: scroll;
 .content {
   padding: 1%;
   flex: 1;
-  background-color: #888888;
+  background-color: #a9bfd4;
   flex-direction: column;
   align-items: center;
   justify-content: up;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: black;
 }
 
 

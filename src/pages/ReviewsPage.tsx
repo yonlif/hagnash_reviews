@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Typography, Box, Card, CardContent, Button } from '@mui/material';
+import { Container, Rating, Typography, Box, Card, CardContent, Button, Divider, Stack, Grid } from '@mui/material';
 import ReviewCard from '../components/ReviewCard.js';
-import { get } from '../database/databaseUtils.js'
+import { get, locations_database } from '../database/databaseUtils.js'
 import { useParams } from "react-router-dom";
 import LeafletMap from "../components/LeafletMap";
-
-
 
 
 const ReviewsPage = () => {
@@ -19,13 +17,9 @@ const ReviewsPage = () => {
         console.log("[ReviewsPage: useEffect] reviews:", data)
         setReviewsData(data)
      })
-    get(null, "locations").then(data => {
+    get(null, locations_database).then(data => {
         console.log("[ReviewsPage: useEffect] locations:", data)
         setLocationsData(data)
-        // const filteredLocations = data.filter((location) =>
-        //   location.name.toLowerCase().includes(searchQuery.toLowerCase())
-        // );
-        // console.log();
         setLocationData(data.filter((location) => 
           location.name.toLowerCase() === name.toLowerCase()
         )[0]);
@@ -33,7 +27,7 @@ const ReviewsPage = () => {
 
   }, []);
 
-  const ratingAverage = reviewsData ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / reviewsData.length) : 0;
+  const ratingAverage = reviewsData ? (reviewsData.reduce((sum, review) => sum + parseInt(review.rating), 0) / reviewsData.length) : 0;
   
   const handleAddReview = () => {
     // TODO: correct way to redirect?
@@ -54,16 +48,30 @@ const ReviewsPage = () => {
       
       {locationData ? <LeafletMap centerLocation={locationData} locationsData={locationsData} /> : ""}
       
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Box>
-          {reviewsData ? <Typography variant="h6">דירוג ממוצע: {ratingAverage.toFixed(1)}</Typography> : "Loading"}
-          <Typography variant="h6">מידע כללי: {locationData ? locationData.generalData : ""}</Typography>
-        </Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} mt={2}>
+        <Grid container spacing={0.5} >
+          <Grid item xs={3} align="right">
+            <Typography noWrap variant="h6">דירוג ממוצע: </Typography>  
+          </Grid>
+          <Grid item xs={8} align="right" >
+            {reviewsData ? <Rating precision={0.1} readOnly value={ratingAverage} /> : "Loading"}
+          </Grid>
+
+          <Grid item xs={3} align="right">
+            <Typography noWrap variant="h6">מידע כללי:  </Typography>
+          </Grid>
+          <Grid item xs={8} align="right"  >
+            <Typography variant="h6">{locationData ? locationData.generalData : ""}</Typography>
+          </Grid>
+        </Grid>
         <Button variant="contained" color="primary" onClick={handleAddReview}>
           הוסף ביקורת
         </Button>
       </Box>
-      {reviewsData && reviewsData.map((review) => <ReviewCard review={review}/> )  }
+      <Box mb={2}>
+        <Divider />
+      </Box>
+      {reviewsData && reviewsData.map((review) => <ReviewCard key={review.id} review={review}/> )  }
 
     </Container>
   );

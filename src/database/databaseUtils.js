@@ -2,6 +2,10 @@ const databaseEndpoint = "http://localhost:3030/"
 const newReviewsDatabaseEndpoint = "http://localhost:3031/"
 
 
+export const new_reviews_database = "new_reviews"
+export const reviews_database = "reviews"
+export const locations_database = "locations"
+
 
 const request = ({ endpoint, method, data }) => {
     fetch(endpoint, {
@@ -14,7 +18,7 @@ const request = ({ endpoint, method, data }) => {
 };
 
 
-export const get = async (name: string=null, databaseName: string="reviews") => {
+export const get = async (name: string=null, databaseName: string=reviews_database) => {
 	var endpoint = `${databaseEndpoint}${databaseName}`
 	if (name) {
 		endpoint = `${endpoint}?name=${name}`
@@ -25,7 +29,7 @@ export const get = async (name: string=null, databaseName: string="reviews") => 
     return data;
 };
 
-export const add = (data, databaseName: string="reviews") => {
+export const add = (data, databaseName: string=reviews_database) => {
     var endpoint = `${newReviewsDatabaseEndpoint}${databaseName}`
     request({
         endpoint: endpoint,
@@ -34,7 +38,7 @@ export const add = (data, databaseName: string="reviews") => {
     });
 };
 
-export const update = (review, databaseName: string="reviews") => {
+export const update = (review, databaseName: string=reviews_database) => {
     var endpoint = `${newReviewsDatabaseEndpoint}${databaseName}`
     request({
         endpoint: `${endpoint}/${review.id}`,
@@ -43,7 +47,7 @@ export const update = (review, databaseName: string="reviews") => {
     });
 };
 
-export const remove = (review, databaseName: string="reviews") => {
+export const remove = (review, databaseName: string=reviews_database) => {
     var endpoint = `${newReviewsDatabaseEndpoint}${databaseName}`
     request({
         endpoint: `${endpoint}/${review.id}`,

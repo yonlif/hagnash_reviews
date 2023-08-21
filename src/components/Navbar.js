@@ -25,7 +25,9 @@ function NavBar() {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" 
+      sx={{backgroundColor: '#315578'}}
+    >
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Typography
@@ -120,4 +122,5 @@ backgroundColor: '#fff',
     </AppBar>
   );
 }
+
 export default NavBar;
